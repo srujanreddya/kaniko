@@ -30,7 +30,7 @@ RUN tar --no-same-owner -C /usr/local/bin/ -xvzf /usr/local/bin/docker-credentia
 RUN mkdir -p /kaniko/.docker
 
 COPY . .
-RUN make GOARCH=${GOARCH} && make out/warmer
+RUN make GOARCH=${GOARCH}
 
 FROM scratch
 COPY --from=0 /go/src/github.com/GoogleContainerTools/kaniko/out/executor /kaniko/executor
@@ -41,7 +41,7 @@ COPY files/ca-certificates.crt /kaniko/ssl/certs/
 COPY --from=0 /kaniko/.docker /kaniko/.docker
 COPY files/nsswitch.conf /etc/nsswitch.conf
 
-COPY --from=amd64/busybox:1.31.1 /bin /busybox
+COPY --from=amd64/busybox:1.31.1 /bin/busybox
 
 # Declare /busybox as a volume to get it automatically in the path to ignore
 VOLUME /busybox

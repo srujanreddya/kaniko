@@ -30,7 +30,7 @@ RUN tar --no-same-owner -C /usr/local/bin/ -xvzf /usr/local/bin/docker-credentia
 RUN mkdir -p /kaniko/.docker
 
 COPY . .
-RUN make GOARCH=${GOARCH}
+RUN make GOARCH=${GOARCH} && make out/warmer
 
 FROM scratch
 COPY --from=0 /go/src/github.com/GoogleContainerTools/kaniko/out/executor /kaniko/executor
@@ -40,9 +40,15 @@ COPY --from=0 /usr/local/bin/docker-credential-acr-linux /kaniko/docker-credenti
 COPY files/ca-certificates.crt /kaniko/ssl/certs/
 COPY --from=0 /kaniko/.docker /kaniko/.docker
 COPY files/nsswitch.conf /etc/nsswitch.conf
+
+COPY --from=amd64/busybox:1.31.1 /bin /busybox
+
+# Declare /busybox as a volume to get it automatically in the path to ignore
+VOLUME /busybox
+
 ENV HOME /root
 ENV USER root
-ENV PATH /usr/local/bin:/kaniko
+ENV PATH /usr/local/bin:/kaniko:/busybox
 ENV SSL_CERT_DIR=/kaniko/ssl/certs
 ENV DOCKER_CONFIG /kaniko/.docker/
 ENV DOCKER_CREDENTIAL_GCR_CONFIG /kaniko/.config/gcloud/docker_credential_gcr_config.json
